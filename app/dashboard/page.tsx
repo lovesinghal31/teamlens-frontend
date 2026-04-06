@@ -9,36 +9,45 @@ import {
   Users,
 } from "lucide-react"
 import { StatCard } from "@/components/dashboard/stat-card"
+import { AvatarGroup, type TeamMember } from "@/components/dashboard/avatar-group"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
 
 // ── Mock data ──────────────────────────────────────────────
 
+const team: TeamMember[] = [
+  { name: "Divyansh Shrivastava", initials: "DS", color: "#6366f1" },
+  { name: "Love Singhal", initials: "LS", color: "#6366f1" },
+  { name: "Uthkarsh Mandloi", initials: "UM", color: "#ec4899" },
+  { name: "Rohan Mehta", initials: "RM", color: "#14b8a6" },
+  { name: "Neha Gupta", initials: "NG", color: "#8b5cf6" },
+]
+
 const todoTasks = [
-  { title: "Setup CI/CD pipeline" },
-  { title: "Write API documentation" },
-  { title: "Design onboarding flow" },
+  { title: "Setup CI/CD pipeline", assignees: [team[0], team[3]] },
+  { title: "Write API documentation", assignees: [team[1], team[2]] },
+  { title: "Design onboarding flow", assignees: [team[2]] },
 ]
 
 const inProgressTasks = [
-  { title: "Build dashboard UI", progress: 65 },
-  { title: "Implement auth system", progress: 40 },
-  { title: "Database schema design", progress: 80 },
+  { title: "Build dashboard UI", assignees: [team[0], team[1]], progress: 65 },
+  { title: "Implement auth system", assignees: [team[3], team[4]], progress: 40 },
+  { title: "Database schema design", assignees: [team[2], team[0]], progress: 80 },
 ]
 
 const completedTasks = [
-  { title: "Project scaffolding" },
-  { title: "Design system setup" },
-  { title: "Init Git repository" },
-  { title: "Finalize tech stack" },
+  { title: "Project scaffolding", assignees: [team[0]] },
+  { title: "Design system setup", assignees: [team[1], team[2]] },
+  { title: "Init Git repository", assignees: [team[0], team[3]] },
+  { title: "Finalize tech stack", assignees: [team[0], team[1], team[2], team[3], team[4]] },
 ]
 
 const workloadData = [
-  { name: "Divyansh", initials: "DS", color: "#6366f1", tasks: 6, load: 85 },
-  { name: "Love", initials: "LS", color: "#6366f1", tasks: 4, load: 55 },
-  { name: "Uthkarsh", initials: "UM", color: "#ec4899", tasks: 5, load: 70 },
-  { name: "Rohan", initials: "RM", color: "#14b8a6", tasks: 3, load: 40 },
-  { name: "Neha", initials: "NG", color: "#8b5cf6", tasks: 2, load: 25 },
+  { member: team[0], tasks: 6, load: 85 },
+  { member: team[1], tasks: 4, load: 55 },
+  { member: team[2], tasks: 5, load: 70 },
+  { member: team[3], tasks: 3, load: 40 },
+  { member: team[4], tasks: 2, load: 25 },
 ]
 
 // ── Component ──────────────────────────────────────────────
@@ -73,6 +82,7 @@ export default function DashboardPage() {
               {todoTasks.map((t) => (
                 <div key={t.title} className="flex items-center justify-between gap-2">
                   <span className="truncate text-xs text-muted-foreground">{t.title}</span>
+                  <AvatarGroup members={t.assignees} max={3} />
                 </div>
               ))}
             </div>
@@ -90,6 +100,7 @@ export default function DashboardPage() {
                 <div key={t.title}>
                   <div className="mb-1.5 flex items-center justify-between gap-2">
                     <span className="truncate text-xs text-muted-foreground">{t.title}</span>
+                    <AvatarGroup members={t.assignees} max={3} />
                   </div>
                   <div className="flex items-center gap-2">
                     <Progress value={t.progress} className="h-1.5 flex-1" />
@@ -115,6 +126,7 @@ export default function DashboardPage() {
                   <span className="truncate text-xs text-muted-foreground line-through">
                     {t.title}
                   </span>
+                  <AvatarGroup members={t.assignees} max={3} />
                 </div>
               ))}
             </div>
@@ -139,22 +151,22 @@ export default function DashboardPage() {
           {/* Workload Distribution — spans 2 cols */}
           <StatCard
             title="Workload Distribution"
-            value={`${workloadData.length} Members`}
+            value={`${team.length} Members`}
             icon={Users}
             iconColor="text-violet-500"
             className="sm:col-span-2"
           >
             <div className="space-y-3">
               {workloadData.map((w) => (
-                <div key={w.name} className="flex items-center gap-3">
+                <div key={w.member.name} className="flex items-center gap-3">
                   <div className="flex w-24 items-center gap-2">
                     <div
                       className="size-6 shrink-0 rounded-full text-center text-[9px] font-medium leading-6 text-white"
-                      style={{ backgroundColor: w.color }}
+                      style={{ backgroundColor: w.member.color }}
                     >
-                      {w.initials}
+                      {w.member.initials}
                     </div>
-                    <span className="truncate text-xs text-foreground">{w.name}</span>
+                    <span className="truncate text-xs text-foreground">{w.member.name.split(" ")[0]}</span>
                   </div>
                   <Progress value={w.load} className="h-1.5 flex-1" />
                   <span
