@@ -6,10 +6,12 @@ import {
   Loader,
   CheckCheck,
   TrendingUp,
+  PanelRightOpen,
   Users,
 } from "lucide-react"
 import { StatCard } from "@/components/dashboard/stat-card"
 import { AvatarGroup, type TeamMember } from "@/components/dashboard/avatar-group"
+import { RightPanel } from "@/components/dashboard/right-panel"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
 
@@ -53,6 +55,8 @@ const workloadData = [
 // ── Component ──────────────────────────────────────────────
 
 export default function DashboardPage() {
+  const [rightPanelOpen, setRightPanelOpen] = React.useState(false)
+
   const totalTasks = todoTasks.length + inProgressTasks.length + completedTasks.length
   const completionPct = Math.round((completedTasks.length / totalTasks) * 100)
 
@@ -66,6 +70,13 @@ export default function DashboardPage() {
           </h1>
           <p className="text-xs text-muted-foreground">Sprint 4 · Week 2</p>
         </div>
+        <button
+          onClick={() => setRightPanelOpen(true)}
+          className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+        >
+          <PanelRightOpen className="size-4" />
+          <span className="hidden sm:inline">Quick View</span>
+        </button>
       </header>
 
       {/* Cards grid */}
@@ -187,6 +198,9 @@ export default function DashboardPage() {
           </StatCard>
         </div>
       </div>
+
+      {/* Right panel */}
+      <RightPanel open={rightPanelOpen} onClose={() => setRightPanelOpen(false)} />
     </>
   )
 }
