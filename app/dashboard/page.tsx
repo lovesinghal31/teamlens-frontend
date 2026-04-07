@@ -8,10 +8,16 @@ import {
   TrendingUp,
   PanelRightOpen,
   Users,
+  Activity,
+  Plus,
+  Zap,
+  Bell,
 } from "lucide-react"
 import { StatCard } from "@/components/dashboard/stat-card"
 import { AvatarGroup, type TeamMember } from "@/components/dashboard/avatar-group"
 import { RightPanel } from "@/components/dashboard/right-panel"
+import { Sparkline } from "@/components/dashboard/sparkline"
+import { ActivityFeed, type ActivityItem } from "@/components/dashboard/activity-feed"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
 
@@ -26,9 +32,9 @@ const team: TeamMember[] = [
 ]
 
 const todoTasks = [
-  { title: "Setup CI/CD pipeline", assignees: [team[0], team[3]] },
-  { title: "Write API documentation", assignees: [team[1], team[2]] },
-  { title: "Design onboarding flow", assignees: [team[2]] },
+  { title: "Setup CI/CD pipeline", assignees: [team[0], team[3]], dueDate: "Apr 10" },
+  { title: "Write API documentation", assignees: [team[1], team[2]], dueDate: "Apr 12" },
+  { title: "Design onboarding flow", assignees: [team[2]], dueDate: "Apr 9" },
 ]
 
 const inProgressTasks = [
@@ -52,6 +58,63 @@ const workloadData = [
   { member: team[4], tasks: 2, load: 25 },
 ]
 
+// Tasks completed per day over the last 7 days
+const velocityData = [1, 0, 2, 1, 3, 2, 4]
+const velocityDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+const recentActivities: ActivityItem[] = [
+  {
+    id: "1",
+    user: team[1],
+    action: "completed",
+    target: "Design system setup",
+    timestamp: "2h ago",
+  },
+  {
+    id: "2",
+    user: team[0],
+    action: "commented",
+    target: "Build dashboard UI",
+    timestamp: "3h ago",
+  },
+  {
+    id: "3",
+    user: team[2],
+    action: "moved",
+    target: "Database schema design",
+    timestamp: "5h ago",
+  },
+  {
+    id: "4",
+    user: team[3],
+    action: "created",
+    target: "Setup CI/CD pipeline",
+    timestamp: "8h ago",
+  },
+  {
+    id: "5",
+    user: team[4],
+    action: "merged",
+    target: "Auth flow branch",
+    timestamp: "1d ago",
+  },
+]
+
+// ── Helpers ────────────────────────────────────────────────
+
+function getGreeting() {
+  const hour = new Date().getHours()
+  if (hour < 12) return "Good morning"
+  if (hour < 17) return "Good afternoon"
+  return "Good evening"
+}
+
+function getDueLabel(dueDate: string) {
+  // Simplified: highlight "Apr 9" as approaching since it's closest
+  if (dueDate === "Apr 9") return { label: dueDate, urgent: true }
+  return { label: dueDate, urgent: false }
+}
+
 // ── Component ──────────────────────────────────────────────
 
 export default function DashboardPage() {
@@ -59,6 +122,14 @@ export default function DashboardPage() {
 
   const totalTasks = todoTasks.length + inProgressTasks.length + completedTasks.length
   const completionPct = Math.round((completedTasks.length / totalTasks) * 100)
+
+  const totalVelocity = velocityData.reduce((a, b) => a + b, 0)
+  const avgVelocity = (totalVelocity / velocityData.length).toFixed(1)
+
+  // Count tasks due within next 3 days for greeting summary
+  const upcomingDueCount = todoTasks.filter(
+    (t) => t.dueDate === "Apr 9" || t.dueDate === "Apr 10"
+  ).length
 
   return (
     <>
@@ -70,14 +141,64 @@ export default function DashboardPage() {
           </h1>
           <p className="text-xs text-muted-foreground">Sprint 4 · Week 2</p>
         </div>
-        <button
-          onClick={() => setRightPanelOpen(true)}
-          className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-        >
-          <PanelRightOpen className="size-4" />
-          <span className="hidden sm:inline">Quick View</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+          >
+            <Bell className="size-4" />
+            <span className="relative flex size-2">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-red-400 opacity-75" />
+              <span className="relative inline-flex size-2 rounded-full bg-red-500" />
+            </span>
+          </button>
+          <button
+            className="flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            <Plus className="size-4" />
+            <span className="hidden sm:inline">New Task</span>
+          </button>
+          <button
+            onClick={() => setRightPanelOpen(true)}
+            className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+          >
+            <PanelRightOpen className="size-4" />
+            <span className="hidden sm:inline">Quick View</span>
+          </button>
+        </div>
       </header>
+
+      {/* Greeting bar */}
+      <div className="border-b border-border bg-gradient-to-r from-primary/5 via-primary/3 to-transparent px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10">
+              <Zap className="size-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-foreground">
+                {getGreeting()}, Divyansh 👋
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {upcomingDueCount > 0 ? (
+                  <>
+                    You have{" "}
+                    <span className="font-medium text-amber-600 dark:text-amber-400">
+                      {upcomingDueCount} task{upcomingDueCount > 1 ? "s" : ""} due soon
+                    </span>
+                    {" · "}
+                    {completedTasks.length} completed this sprint · Team velocity is{" "}
+                    <span className="font-medium text-emerald-600 dark:text-emerald-400">trending up</span>
+                  </>
+                ) : (
+                  <>
+                    {completedTasks.length} tasks completed this sprint · Team is on track
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Cards grid */}
       <div className="p-6">
@@ -90,12 +211,27 @@ export default function DashboardPage() {
             iconColor="text-amber-500"
           >
             <div className="space-y-2.5">
-              {todoTasks.map((t) => (
-                <div key={t.title} className="flex items-center justify-between gap-2">
-                  <span className="truncate text-xs text-muted-foreground">{t.title}</span>
-                  <AvatarGroup members={t.assignees} max={3} />
-                </div>
-              ))}
+              {todoTasks.map((t) => {
+                const due = getDueLabel(t.dueDate)
+                return (
+                  <div key={t.title} className="flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="truncate text-xs text-muted-foreground">{t.title}</span>
+                      <span
+                        className={cn(
+                          "shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium",
+                          due.urgent
+                            ? "bg-red-500/10 text-red-600 dark:text-red-400"
+                            : "bg-muted text-muted-foreground"
+                        )}
+                      >
+                        {due.label}
+                      </span>
+                    </div>
+                    <AvatarGroup members={t.assignees} max={3} />
+                  </div>
+                )
+              })}
             </div>
           </StatCard>
 
@@ -159,15 +295,48 @@ export default function DashboardPage() {
             </div>
           </StatCard>
 
-          {/* Workload Distribution — spans 2 cols */}
+          {/* Progress Rate / Velocity */}
+          <StatCard
+            title="Tasks Progress Rate"
+            value={`${avgVelocity}/day`}
+            icon={Activity}
+            iconColor="text-cyan-500"
+          >
+            <div className="space-y-2">
+              <Sparkline data={velocityData} className="h-12 w-full" />
+              <div className="flex justify-between text-[10px] text-muted-foreground">
+                {velocityDays.map((day) => (
+                  <span key={day}>{day}</span>
+                ))}
+              </div>
+              <div className="flex items-center gap-1.5 pt-1">
+                <TrendingUp className="size-3 text-emerald-500" />
+                <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                  +33% from last week
+                </span>
+              </div>
+            </div>
+          </StatCard>
+
+          {/* Recent Activity */}
+          <StatCard
+            title="Recent Activity"
+            value={`${recentActivities.length} Updates`}
+            icon={Activity}
+            iconColor="text-orange-500"
+          >
+            <ActivityFeed activities={recentActivities.slice(0, 4)} />
+          </StatCard>
+
+          {/* Workload Distribution — spans 3 cols */}
           <StatCard
             title="Workload Distribution"
             value={`${team.length} Members`}
             icon={Users}
             iconColor="text-violet-500"
-            className="sm:col-span-2"
+            className="sm:col-span-2 lg:col-span-3"
           >
-            <div className="space-y-3">
+            <div className="grid gap-x-8 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
               {workloadData.map((w) => (
                 <div key={w.member.name} className="flex items-center gap-3">
                   <div className="flex w-24 items-center gap-2">
