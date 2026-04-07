@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { X, Calendar, Clock, CheckCircle2, Circle, Timer } from "lucide-react"
+import { X, Calendar, Clock, CheckCircle2, Circle, Timer, CalendarClock } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -29,11 +29,18 @@ const upcomingMeetings = [
 ]
 
 const yourTasks = [
-  { title: "Design system tokens", progress: 85, status: "in-progress" as const },
-  { title: "API integration layer", progress: 40, status: "in-progress" as const },
-  { title: "User auth flow", progress: 100, status: "completed" as const },
-  { title: "Dashboard analytics", progress: 10, status: "in-progress" as const },
+  { title: "Design system tokens", progress: 85, status: "in-progress" as const, deadline: "Apr 9" },
+  { title: "API integration layer", progress: 40, status: "in-progress" as const, deadline: "Apr 12" },
+  { title: "User auth flow", progress: 100, status: "completed" as const, deadline: "Apr 5" },
+  { title: "Dashboard analytics", progress: 10, status: "in-progress" as const, deadline: "Apr 10" },
 ]
+
+function getDeadlineStyle(deadline: string, status: string) {
+  if (status === "completed") return "bg-muted/50 text-muted-foreground/60"
+  if (deadline === "Apr 9") return "bg-red-500/10 text-red-600 dark:text-red-400"
+  if (deadline === "Apr 10") return "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+  return "bg-muted text-muted-foreground"
+}
 
 interface RightPanelProps {
   open: boolean
@@ -152,21 +159,32 @@ export function RightPanel({ open, onClose }: RightPanelProps) {
                   key={task.title}
                   className="rounded-xl border border-border p-3.5 transition-colors hover:bg-accent/50"
                 >
-                  <div className="mb-2 flex items-center gap-2">
-                    {task.status === "completed" ? (
-                      <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />
-                    ) : (
-                      <Circle className="size-4 shrink-0 text-muted-foreground" />
-                    )}
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {task.status === "completed" ? (
+                        <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />
+                      ) : (
+                        <Circle className="size-4 shrink-0 text-muted-foreground" />
+                      )}
+                      <span
+                        className={cn(
+                          "truncate text-sm font-medium",
+                          task.status === "completed"
+                            ? "text-muted-foreground line-through"
+                            : "text-foreground"
+                        )}
+                      >
+                        {task.title}
+                      </span>
+                    </div>
                     <span
                       className={cn(
-                        "text-sm font-medium",
-                        task.status === "completed"
-                          ? "text-muted-foreground line-through"
-                          : "text-foreground"
+                        "flex shrink-0 items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium",
+                        getDeadlineStyle(task.deadline, task.status)
                       )}
                     >
-                      {task.title}
+                      <CalendarClock className="size-2.5" />
+                      {task.deadline}
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
