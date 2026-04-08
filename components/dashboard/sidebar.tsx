@@ -1,12 +1,11 @@
 "use client"
 
 import * as React from "react"
+import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
-  FolderKanban,
-  Users,
-  Settings,
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
   Sparkles,
@@ -21,14 +20,13 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", active: true },
-  { icon: FolderKanban, label: "Projects", href: "/projects", active: false },
-  { icon: Users, label: "Team", href: "/team", active: false },
-  { icon: Settings, label: "Settings", href: "/settings", active: false },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+  { icon: CalendarDays, label: "Meetings", href: "/dashboard/meetings" },
 ]
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = React.useState(false)
+  const pathname = usePathname()
 
   return (
     <TooltipProvider delay={0}>
@@ -55,12 +53,17 @@ export function Sidebar() {
         {/* Navigation */}
         <nav className="flex-1 space-y-1 p-3">
           {navItems.map((item) => {
+            const isActive =
+              item.href === "/dashboard"
+                ? pathname === "/dashboard"
+                : pathname.startsWith(item.href)
+
             const linkContent = (
               <a
                 href={item.href}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                  item.active
+                  isActive
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 )}
