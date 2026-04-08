@@ -34,6 +34,13 @@ function getWeekDates(anchor: Date): Date[] {
   })
 }
 
+function toDateKey(date: Date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
 // ── Component ──────────────────────────────────────────────
 
 interface MeetingCalendarProps {
@@ -64,9 +71,7 @@ export function MeetingCalendar({
     el.scrollTop = Math.max(0, targetScroll)
   }, [])
 
-  // Determine today's day index (0=Mon) for highlight
   const today = new Date()
-  const todayDayIndex = today.getDay() === 0 ? 6 : today.getDay() - 1
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card">
@@ -85,13 +90,13 @@ export function MeetingCalendar({
             <div
               key={idx}
               className={cn(
-                "flex flex-1 flex-col items-center py-3 text-center border-r border-border last:border-r-0",
+                "flex flex-1 flex-col items-center border-r border-border py-3 text-center last:border-r-0",
                 isToday && "bg-primary/5"
               )}
             >
               <span
                 className={cn(
-                  "text-[11px] font-medium uppercase tracking-widest",
+                  "text-[11px] font-medium tracking-widest uppercase",
                   isToday ? "text-primary" : "text-muted-foreground"
                 )}
               >
@@ -141,7 +146,9 @@ export function MeetingCalendar({
               date.getMonth() === today.getMonth() &&
               date.getFullYear() === today.getFullYear()
 
-            const dayMeetings = meetings.filter((m) => m.day === dayIdx)
+            const dayMeetings = meetings.filter(
+              (m) => m.date === toDateKey(date)
+            )
 
             return (
               <div
@@ -196,14 +203,14 @@ export function MeetingCalendar({
 
           {/* Current time line — spans full width across all columns */}
           <div
-            className="pointer-events-none absolute left-0 right-0 z-20 flex items-center"
+            className="pointer-events-none absolute right-0 left-0 z-20 flex items-center"
             style={{
               top:
                 ((today.getHours() * 60 + today.getMinutes()) / 60) *
                 HOUR_HEIGHT,
             }}
           >
-            <div className="w-[72px] shrink-0 flex items-center justify-end pr-1">
+            <div className="flex w-[72px] shrink-0 items-center justify-end pr-1">
               <div className="size-2.5 rounded-full bg-red-500 shadow-md shadow-red-500/50" />
             </div>
             <div className="h-[2px] flex-1 bg-red-500 shadow-sm shadow-red-500/30" />

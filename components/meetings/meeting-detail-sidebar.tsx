@@ -2,13 +2,7 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import {
-  X,
-  Sparkles,
-  ListChecks,
-  CalendarPlus,
-  LogOut,
-} from "lucide-react"
+import { X, Sparkles, ListChecks, CalendarPlus, LogOut } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -16,21 +10,22 @@ import type { Meeting } from "@/lib/meeting-types"
 
 // ── Helpers ────────────────────────────────────────────────
 
-const DAY_NAMES = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-]
-
 function formatTime(hour: number, minute: number) {
   const period = hour >= 12 ? "PM" : "AM"
   const h = hour % 12 || 12
   const m = minute.toString().padStart(2, "0")
   return `${h}:${m} ${period}`
+}
+
+function formatMeetingDate(dateKey: string) {
+  const [year, month, day] = dateKey.split("-").map(Number)
+  const date = new Date(year, month - 1, day)
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
 }
 
 const priorityBadge: Record<
@@ -138,20 +133,20 @@ export function MeetingDetailSidebar({
       {/* Panel */}
       <div
         className={cn(
-          "fixed right-0 top-0 z-50 flex h-full w-[400px] flex-col border-l border-border bg-background shadow-2xl transition-transform duration-300 ease-in-out",
+          "fixed top-0 right-0 z-50 flex h-full w-[400px] flex-col border-l border-border bg-background shadow-2xl transition-transform duration-300 ease-in-out",
           open ? "translate-x-0" : "translate-x-full"
         )}
       >
         {meeting && (
           <>
             {/* Header */}
-            <div className="space-y-4 border-b border-border px-6 pb-5 pt-6">
+            <div className="space-y-4 border-b border-border px-6 pt-6 pb-5">
               {/* Badges + close */}
               <div className="flex items-center justify-between">
                 <div className="flex flex-wrap items-center gap-2">
                   <span
                     className={cn(
-                      "rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
+                      "rounded-md px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase",
                       priorityBadge[meeting.priority].className
                     )}
                   >
@@ -159,7 +154,7 @@ export function MeetingDetailSidebar({
                   </span>
                   <span
                     className={cn(
-                      "rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
+                      "rounded-md px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase",
                       approvalBadge[meeting.approvalStatus].className
                     )}
                   >
@@ -181,7 +176,7 @@ export function MeetingDetailSidebar({
 
               {/* Day + time */}
               <p className="text-sm text-muted-foreground">
-                {DAY_NAMES[meeting.day]} ·{" "}
+                {formatMeetingDate(meeting.date)} ·{" "}
                 {formatTime(meeting.startHour, meeting.startMinute)} –{" "}
                 {formatTime(meeting.endHour, meeting.endMinute)}
               </p>
@@ -191,7 +186,7 @@ export function MeetingDetailSidebar({
                 {meeting.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-md border border-border bg-muted/50 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground"
+                    className="rounded-md border border-border bg-muted/50 px-2.5 py-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase"
                   >
                     {tag}
                   </span>
@@ -203,11 +198,11 @@ export function MeetingDetailSidebar({
             <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
               {/* AI Reasoning */}
               <section>
-                <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-400">
+                <div className="mb-3 flex items-center gap-2 text-xs font-bold tracking-widest text-amber-400 uppercase">
                   <Sparkles className="size-3.5" />
                   AI Reasoning
                 </div>
-                <div className="rounded-xl bg-card border border-border p-4">
+                <div className="rounded-xl border border-border bg-card p-4">
                   <p className="text-sm leading-relaxed text-muted-foreground">
                     {meeting.aiReasoning}
                   </p>
@@ -219,7 +214,7 @@ export function MeetingDetailSidebar({
               {/* Agenda */}
               {meeting.agenda.length > 0 && (
                 <section>
-                  <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-emerald-400">
+                  <div className="mb-3 flex items-center gap-2 text-xs font-bold tracking-widest text-emerald-400 uppercase">
                     <ListChecks className="size-3.5" />
                     Agenda
                   </div>
@@ -230,7 +225,9 @@ export function MeetingDetailSidebar({
                           <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-[10px] font-bold text-emerald-400">
                             {idx + 1}
                           </span>
-                          <span className="text-muted-foreground leading-5">{item}</span>
+                          <span className="leading-5 text-muted-foreground">
+                            {item}
+                          </span>
                         </li>
                       ))}
                     </ol>
@@ -238,12 +235,14 @@ export function MeetingDetailSidebar({
                 </section>
               )}
 
-              {meeting.agenda.length > 0 && meeting.tasks.length > 0 && <Separator />}
+              {meeting.agenda.length > 0 && meeting.tasks.length > 0 && (
+                <Separator />
+              )}
 
               {/* Task Snapshot */}
               {meeting.tasks.length > 0 && (
                 <section>
-                  <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-cyan-400">
+                  <div className="mb-3 flex items-center gap-2 text-xs font-bold tracking-widest text-cyan-400 uppercase">
                     <span className="text-sm">◆</span>
                     Task Snapshot
                   </div>
@@ -251,7 +250,7 @@ export function MeetingDetailSidebar({
                   {/* Overall */}
                   <div className="mb-4 rounded-xl border border-border bg-card p-4">
                     <div className="mb-2 flex items-center justify-between text-xs">
-                      <span className="font-semibold uppercase tracking-wider text-muted-foreground">
+                      <span className="font-semibold tracking-wider text-muted-foreground uppercase">
                         Overall
                       </span>
                       <span className="font-bold text-foreground">
@@ -274,7 +273,7 @@ export function MeetingDetailSidebar({
                           </h4>
                           <span
                             className={cn(
-                              "shrink-0 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                              "shrink-0 rounded-md px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase",
                               taskStatusBadge[task.status].className
                             )}
                           >
@@ -314,7 +313,7 @@ export function MeetingDetailSidebar({
 
               {/* Participants */}
               <section>
-                <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                <div className="mb-3 flex items-center gap-2 text-xs font-bold tracking-widest text-muted-foreground uppercase">
                   <span className="text-sm">○</span>
                   Participants
                 </div>
@@ -322,7 +321,7 @@ export function MeetingDetailSidebar({
                 {/* Required */}
                 {requiredParticipants.length > 0 && (
                   <div className="mb-4">
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
+                    <p className="mb-2 text-[10px] font-bold tracking-widest text-muted-foreground/70 uppercase">
                       Required
                     </p>
                     <div className="space-y-2">
@@ -354,7 +353,7 @@ export function MeetingDetailSidebar({
                 {/* Optional */}
                 {optionalParticipants.length > 0 && (
                   <div>
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
+                    <p className="mb-2 text-[10px] font-bold tracking-widest text-muted-foreground/70 uppercase">
                       Optional
                     </p>
                     <div className="space-y-2">

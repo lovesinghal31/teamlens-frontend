@@ -15,7 +15,7 @@ export interface MeetingTask {
 export interface Meeting {
   id: string
   title: string
-  day: number // 0-6 (Mon-Sun index)
+  date: string // YYYY-MM-DD
   startHour: number
   startMinute: number
   endHour: number
