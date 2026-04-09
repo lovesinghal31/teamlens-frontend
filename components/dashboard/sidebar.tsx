@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
   CalendarDays,
+  Users,
   ChevronLeft,
   ChevronRight,
   Sparkles,
@@ -22,6 +23,7 @@ import { Separator } from "@/components/ui/separator"
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: CalendarDays, label: "Meetings", href: "/dashboard/meetings" },
+  { icon: Users, label: "Team", href: "/dashboard/team" },
 ]
 
 export function Sidebar() {
