@@ -132,7 +132,7 @@ export default function DashboardPage() {
   ).length
 
   return (
-    <>
+    <div className="flex flex-1 flex-col overflow-y-auto">
       {/* Top bar */}
       <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/80 px-6 backdrop-blur-md">
         <div>
@@ -370,6 +370,6 @@ export default function DashboardPage() {
 
       {/* Right panel */}
       <RightPanel open={rightPanelOpen} onClose={() => setRightPanelOpen(false)} />
-    </>
+    </div>
   )
 }

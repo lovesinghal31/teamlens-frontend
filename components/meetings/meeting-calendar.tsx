@@ -57,19 +57,33 @@ export function MeetingCalendar({
   weekStart,
 }: MeetingCalendarProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null)
+  const hasMounted = React.useRef(false)
   const weekDates = getWeekDates(weekStart)
 
-  // Auto-scroll to center on current time on mount
+  // Auto-scroll to center on current time on mount and whenever weekStart changes
   React.useEffect(() => {
-    const el = scrollRef.current
-    if (!el) return
-    const now = new Date()
-    const currentMinutes = now.getHours() * 60 + now.getMinutes()
-    const currentPx = (currentMinutes / 60) * HOUR_HEIGHT
-    // Put current time in the upper-middle (about 1/3 from top)
-    const targetScroll = currentPx - el.clientHeight / 3
-    el.scrollTop = Math.max(0, targetScroll)
-  }, [])
+    const isFirstMount = !hasMounted.current
+    hasMounted.current = true
+
+    // Use rAF to ensure the scrollable container is fully laid out
+    requestAnimationFrame(() => {
+      const el = scrollRef.current
+      if (!el) return
+      const now = new Date()
+      const currentMinutes = now.getHours() * 60 + now.getMinutes()
+      const currentPx = (currentMinutes / 60) * HOUR_HEIGHT
+      // Put current time in the upper-middle (about 1/3 from top)
+      const targetScroll = Math.max(0, currentPx - el.clientHeight / 3)
+
+      if (isFirstMount) {
+        // Instant jump on page load / refresh
+        el.scrollTop = targetScroll
+      } else {
+        // Smooth scroll when navigating between weeks
+        el.scrollTo({ top: targetScroll, behavior: "smooth" })
+      }
+    })
+  }, [weekStart])
 
   const today = new Date()
 
