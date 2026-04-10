@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   CalendarDays,
   Users,
+  MessageSquare,
   ChevronLeft,
   ChevronRight,
   Sparkles,
@@ -24,6 +25,7 @@ const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: CalendarDays, label: "Meetings", href: "/dashboard/meetings" },
   { icon: Users, label: "Team", href: "/dashboard/team" },
+  { icon: MessageSquare, label: "Chats", href: "/dashboard/chats" },
 ]
 
 export function Sidebar() {
@@ -34,7 +36,7 @@ export function Sidebar() {
     <TooltipProvider delay={0}>
       <aside
         className={cn(
-          "relative flex h-screen flex-col border-r border-border bg-sidebar transition-all duration-300 ease-in-out",
+          "relative z-40 flex h-screen flex-col border-r border-border bg-sidebar transition-all duration-300 ease-in-out",
           collapsed ? "w-[68px]" : "w-[240px]"
         )}
       >
