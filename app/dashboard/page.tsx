@@ -14,91 +14,22 @@ import {
   Bell,
 } from "lucide-react"
 import { StatCard } from "@/components/dashboard/stat-card"
-import { AvatarGroup, type TeamMember } from "@/components/dashboard/avatar-group"
+import { AvatarGroup } from "@/components/dashboard/avatar-group"
 import { RightPanel } from "@/components/dashboard/right-panel"
 import { Sparkline } from "@/components/dashboard/sparkline"
-import { ActivityFeed, type ActivityItem } from "@/components/dashboard/activity-feed"
+import { ActivityFeed } from "@/components/dashboard/activity-feed"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
-
-// ── Mock data ──────────────────────────────────────────────
-
-const team: TeamMember[] = [
-  { name: "Divyansh Shrivastava", initials: "DS", color: "#6366f1" },
-  { name: "Love Singhal", initials: "LS", color: "#6366f1" },
-  { name: "Uthkarsh Mandloi", initials: "UM", color: "#ec4899" },
-  { name: "Rohan Mehta", initials: "RM", color: "#14b8a6" },
-  { name: "Neha Gupta", initials: "NG", color: "#8b5cf6" },
-]
-
-const todoTasks = [
-  { title: "Setup CI/CD pipeline", assignees: [team[0], team[3]], dueDate: "Apr 10" },
-  { title: "Write API documentation", assignees: [team[1], team[2]], dueDate: "Apr 12" },
-  { title: "Design onboarding flow", assignees: [team[2]], dueDate: "Apr 9" },
-]
-
-const inProgressTasks = [
-  { title: "Build dashboard UI", assignees: [team[0], team[1]], progress: 65 },
-  { title: "Implement auth system", assignees: [team[3], team[4]], progress: 40 },
-  { title: "Database schema design", assignees: [team[2], team[0]], progress: 80 },
-]
-
-const completedTasks = [
-  { title: "Project scaffolding", assignees: [team[0]] },
-  { title: "Design system setup", assignees: [team[1], team[2]] },
-  { title: "Init Git repository", assignees: [team[0], team[3]] },
-  { title: "Finalize tech stack", assignees: [team[0], team[1], team[2], team[3], team[4]] },
-]
-
-const workloadData = [
-  { member: team[0], tasks: 6, load: 85 },
-  { member: team[1], tasks: 4, load: 55 },
-  { member: team[2], tasks: 5, load: 70 },
-  { member: team[3], tasks: 3, load: 40 },
-  { member: team[4], tasks: 2, load: 25 },
-]
-
-// Tasks completed per day over the last 7 days
-const velocityData = [1, 0, 2, 1, 3, 2, 4]
-const velocityDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-
-const recentActivities: ActivityItem[] = [
-  {
-    id: "1",
-    user: team[1],
-    action: "completed",
-    target: "Design system setup",
-    timestamp: "2h ago",
-  },
-  {
-    id: "2",
-    user: team[0],
-    action: "commented",
-    target: "Build dashboard UI",
-    timestamp: "3h ago",
-  },
-  {
-    id: "3",
-    user: team[2],
-    action: "moved",
-    target: "Database schema design",
-    timestamp: "5h ago",
-  },
-  {
-    id: "4",
-    user: team[3],
-    action: "created",
-    target: "Setup CI/CD pipeline",
-    timestamp: "8h ago",
-  },
-  {
-    id: "5",
-    user: team[4],
-    action: "merged",
-    target: "Auth flow branch",
-    timestamp: "1d ago",
-  },
-]
+import {
+  dashboardTeam,
+  todoTasks,
+  inProgressTasks,
+  completedTasks,
+  workloadData,
+  velocityData,
+  velocityDays,
+  recentActivities,
+} from "@/lib/mock-data"
 
 // ── Helpers ────────────────────────────────────────────────
 
@@ -331,7 +262,7 @@ export default function DashboardPage() {
           {/* Workload Distribution — spans 3 cols */}
           <StatCard
             title="Workload Distribution"
-            value={`${team.length} Members`}
+            value={`${dashboardTeam.length} Members`}
             icon={Users}
             iconColor="text-violet-500"
             className="sm:col-span-2 lg:col-span-3"

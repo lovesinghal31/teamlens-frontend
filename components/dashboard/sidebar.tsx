@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
@@ -63,7 +64,7 @@ export function Sidebar() {
                 : pathname.startsWith(item.href)
 
             const linkContent = (
-              <a
+              <Link
                 href={item.href}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
@@ -74,7 +75,7 @@ export function Sidebar() {
               >
                 <item.icon className="size-[18px] shrink-0" />
                 {!collapsed && <span>{item.label}</span>}
-              </a>
+              </Link>
             )
 
             if (collapsed) {

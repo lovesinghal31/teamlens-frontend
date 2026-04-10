@@ -6,34 +6,7 @@ import { X, Calendar, Clock, CheckCircle2, Circle, Timer, CalendarClock } from "
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-
-const upcomingMeetings = [
-  {
-    title: "Sprint Review",
-    time: "Today, 3:00 PM",
-    participants: ["AS", "PK", "RM"],
-    color: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  },
-  {
-    title: "Design Sync",
-    time: "Today, 5:30 PM",
-    participants: ["DS", "LS"],
-    color: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
-  },
-  {
-    title: "Client Demo",
-    time: "Tomorrow, 11:00 AM",
-    participants: ["DS", "UM", "RM", "LS"],
-    color: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-  },
-]
-
-const yourTasks = [
-  { title: "Design system tokens", progress: 85, status: "in-progress" as const, deadline: "Apr 9" },
-  { title: "API integration layer", progress: 40, status: "in-progress" as const, deadline: "Apr 12" },
-  { title: "User auth flow", progress: 100, status: "completed" as const, deadline: "Apr 5" },
-  { title: "Dashboard analytics", progress: 10, status: "in-progress" as const, deadline: "Apr 10" },
-]
+import { upcomingMeetingsPanel as upcomingMeetings, yourTasks } from "@/lib/mock-data"
 
 function getDeadlineStyle(deadline: string, status: string) {
   if (status === "completed") return "bg-muted/50 text-muted-foreground/60"

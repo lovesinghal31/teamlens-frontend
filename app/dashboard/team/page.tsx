@@ -4,97 +4,8 @@ import * as React from "react"
 import { Search, Users, Filter, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { TeamMemberRow } from "@/components/team/team-member-row"
-import type { TaskAssignee, TeamMemberData, TaskStatus } from "@/lib/team-types"
-
-// ── Team members ───────────────────────────────────────────
-
-const members: TaskAssignee[] = [
-  { id: "ds", name: "Divyansh Shrivastava", initials: "DS", color: "#6366f1" },
-  { id: "ls", name: "Love Singhal", initials: "LS", color: "#6366f1" },
-  { id: "um", name: "Uthkarsh Mandloi", initials: "UM", color: "#ec4899" },
-  { id: "rm", name: "Rohan Mehta", initials: "RM", color: "#14b8a6" },
-  { id: "ng", name: "Neha Gupta", initials: "NG", color: "#8b5cf6" },
-]
-
-const [ds, ls, um, rm, ng] = members
-
-// ── Mock tasks ─────────────────────────────────────────────
-
-interface RawTask {
-  id: string
-  title: string
-  status: TaskStatus
-  dueDate?: string
-  assigneeIds: string[]
-}
-
-const allTasks: RawTask[] = [
-  // ── Backend / Infra ───────────────────
-  { id: "t1", title: "Setup CI/CD pipeline", status: "pending", dueDate: "Apr 10", assigneeIds: ["ds", "rm"] },
-  { id: "t2", title: "Implement auth system", status: "in-progress", dueDate: "Apr 14", assigneeIds: ["rm", "ng"] },
-  { id: "t3", title: "Database schema design", status: "in-progress", dueDate: "Apr 11", assigneeIds: ["um", "ds"] },
-  { id: "t4", title: "API rate limiting middleware", status: "pending", dueDate: "Apr 15", assigneeIds: ["rm"] },
-  { id: "t5", title: "Setup Redis caching layer", status: "at-risk", dueDate: "Apr 12", assigneeIds: ["ds", "rm"] },
-
-  // ── Frontend / UI ─────────────────────
-  { id: "t6", title: "Build dashboard UI", status: "in-progress", dueDate: "Apr 13", assigneeIds: ["ds", "ls"] },
-  { id: "t7", title: "Design onboarding flow", status: "pending", dueDate: "Apr 9", assigneeIds: ["um"] },
-  { id: "t8", title: "Implement dark mode toggle", status: "completed", assigneeIds: ["ls"] },
-  { id: "t9", title: "Meeting calendar component", status: "completed", assigneeIds: ["ls", "ds"] },
-  { id: "t10", title: "Responsive sidebar navigation", status: "completed", assigneeIds: ["ls", "um"] },
-
-  // ── Documentation / Process ───────────
-  { id: "t11", title: "Write API documentation", status: "in-progress", dueDate: "Apr 12", assigneeIds: ["ls", "um"] },
-  { id: "t12", title: "Create component storybook", status: "pending", dueDate: "Apr 16", assigneeIds: ["um", "ng"] },
-  { id: "t13", title: "Project scaffolding", status: "completed", assigneeIds: ["ds"] },
-  { id: "t14", title: "Design system setup", status: "completed", assigneeIds: ["ls", "um"] },
-  { id: "t15", title: "Init Git repository", status: "completed", assigneeIds: ["ds", "rm"] },
-
-  // ── Testing / QA ──────────────────────
-  { id: "t16", title: "Write unit tests for auth", status: "pending", dueDate: "Apr 17", assigneeIds: ["ng", "rm"] },
-  { id: "t17", title: "E2E test suite setup", status: "at-risk", dueDate: "Apr 14", assigneeIds: ["ng"] },
-  { id: "t18", title: "Performance audit & optimization", status: "pending", dueDate: "Apr 18", assigneeIds: ["ds", "ng"] },
-
-  // ── Misc ──────────────────────────────
-  { id: "t19", title: "Finalize tech stack", status: "completed", assigneeIds: ["ds", "ls", "um", "rm", "ng"] },
-  { id: "t20", title: "Sprint retrospective notes", status: "in-progress", dueDate: "Apr 11", assigneeIds: ["um"] },
-]
-
-// ── Build team member data ─────────────────────────────────
-
-function buildTeamData(): TeamMemberData[] {
-  return members.map((m) => {
-    const memberTasks = allTasks
-      .filter((t) => t.assigneeIds.includes(m.id))
-      .map((t) => ({
-        id: t.id,
-        title: t.title,
-        status: t.status,
-        dueDate: t.dueDate,
-        assignees: t.assigneeIds.map((aid) => members.find((x) => x.id === aid)!),
-      }))
-
-    // Determine role based on member id
-    const roles: Record<string, string> = {
-      ds: "Project Lead · Full-Stack",
-      ls: "Frontend Engineer",
-      um: "UI/UX Designer · Frontend",
-      rm: "Backend Engineer",
-      ng: "QA Engineer · Testing",
-    }
-
-    return {
-      id: m.id,
-      name: m.name,
-      initials: m.initials,
-      role: roles[m.id] ?? "Engineer",
-      color: m.color,
-      tasks: memberTasks,
-    }
-  })
-}
-
-const teamData = buildTeamData()
+import type { TeamMemberData } from "@/lib/team-types"
+import { teamMembers, allTeamTasks, buildTeamData } from "@/lib/mock-data"
 
 // ── Filter chips ───────────────────────────────────────────
 
@@ -115,6 +26,10 @@ function matchesFilter(member: TeamMemberData, filter: FilterOption): boolean {
   return true
 }
 
+// ── Build from centralized data ────────────────────────────
+
+const teamData = buildTeamData()
+
 // ── Page component ─────────────────────────────────────────
 
 export default function TeamPage() {
@@ -128,8 +43,8 @@ export default function TeamPage() {
     return nameMatch && filterMatch
   })
 
-  const totalTasks = allTasks.length
-  const completedCount = allTasks.filter((t) => t.status === "completed").length
+  const totalTasks = allTeamTasks.length
+  const completedCount = allTeamTasks.filter((t) => t.status === "completed").length
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto">
@@ -138,7 +53,7 @@ export default function TeamPage() {
         <div>
           <h1 className="text-lg font-bold tracking-tight text-foreground">Team BitWiser</h1>
           <p className="text-xs text-muted-foreground">
-            {members.length} Members · {completedCount}/{totalTasks} tasks completed · Sprint 4
+            {teamMembers.length} Members · {completedCount}/{totalTasks} tasks completed · Sprint 4
           </p>
         </div>
 
