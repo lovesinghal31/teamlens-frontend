@@ -475,3 +475,41 @@ export const mockMessages: Record<string, ChatMessage[]> = {
 }
 
 export const typingNames = ["Love", "Uthkarsh", "Rohan", "Neha"]
+
+// ── Profile page mock data ─────────────────────────────────
+
+export interface UserProfile {
+  id: string
+  name: string
+  initials: string
+  color: string
+  role: string
+  email: string
+  phone: string
+  timezone: string
+  joinedDate: string
+  status: "online" | "away" | "offline"
+  skills: { name: string; level: "beginner" | "intermediate" | "expert" }[]
+  bio: string
+}
+
+export const currentUserProfile: UserProfile = {
+  ...currentUser,
+  role: roles[currentUser.id] ?? "Engineer",
+  email: "divyansh.s@teamlens.dev",
+  phone: "+91 98765 43210",
+  timezone: "IST (UTC+5:30)",
+  joinedDate: "Jan 2026",
+  status: "online",
+  skills: [
+    { name: "React", level: "expert" },
+    { name: "Next.js", level: "expert" },
+    { name: "TypeScript", level: "expert" },
+    { name: "Node.js", level: "intermediate" },
+    { name: "Python", level: "intermediate" },
+    { name: "System Design", level: "expert" },
+    { name: "CI/CD", level: "intermediate" },
+    { name: "PostgreSQL", level: "beginner" },
+  ],
+  bio: "Full-stack engineer leading the TeamLens project. Passionate about building tools that make collaboration seamless.",
+}
