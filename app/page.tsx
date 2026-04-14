@@ -81,7 +81,7 @@ export default function LandingPage() {
 
         <div className="flex items-center gap-3">
           <Link
-            href="/dashboard"
+            href="/login"
             className="group flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all duration-200 hover:shadow-xl hover:shadow-primary/30 hover:brightness-110"
           >
             Open Dashboard
@@ -113,14 +113,14 @@ export default function LandingPage() {
 
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
-            href="/dashboard"
+            href="/login"
             className="group flex items-center gap-2 rounded-xl bg-primary px-8 py-3.5 text-base font-semibold text-primary-foreground shadow-xl shadow-primary/25 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/30 hover:brightness-110"
           >
             Enter Dashboard
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
           </Link>
           <Link
-            href="/dashboard/meetings"
+            href="/login"
             className="flex items-center gap-2 rounded-xl border border-border px-8 py-3.5 text-base font-medium text-muted-foreground transition-all duration-200 hover:border-primary/30 hover:bg-accent hover:text-accent-foreground"
           >
             <CalendarDays className="size-4" />
@@ -199,7 +199,7 @@ export default function LandingPage() {
             workflow with AI-powered insights and automation.
           </p>
           <Link
-            href="/dashboard"
+            href="/login"
             className="group mt-7 inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-3.5 text-base font-semibold text-primary-foreground shadow-xl shadow-primary/25 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/30 hover:brightness-110"
           >
             Get Started
