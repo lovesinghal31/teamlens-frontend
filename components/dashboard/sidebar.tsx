@@ -30,6 +30,7 @@ import {
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
+import { useAuth } from "@/components/auth-context"
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
@@ -44,6 +45,7 @@ export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const { resolvedTheme, setTheme } = useTheme()
+  const { user, logout } = useAuth()
 
   return (
     <TooltipProvider delay={0}>
@@ -118,14 +120,14 @@ export function Sidebar() {
             >
               <Avatar className="size-8">
                 <AvatarFallback className="bg-primary/15 text-xs font-medium text-primary">
-                  DS
+                  {user?.initials ?? "?"}
                 </AvatarFallback>
               </Avatar>
               {!collapsed && (
                 <>
                   <div className="min-w-0 flex-1 text-left">
-                    <p className="truncate text-sm font-medium text-foreground">Divyansh Shrivastava</p>
-                    <p className="truncate text-xs text-muted-foreground">Admin</p>
+                    <p className="truncate text-sm font-medium text-foreground">{user?.name ?? "User"}</p>
+                    <p className="truncate text-xs text-muted-foreground">Member</p>
                   </div>
                   <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
                 </>
@@ -142,12 +144,12 @@ export function Sidebar() {
               <div className="flex items-center gap-3 rounded-lg px-3 py-2.5">
                 <Avatar className="size-9">
                   <AvatarFallback className="bg-primary/15 text-xs font-medium text-primary">
-                    DS
+                    {user?.initials ?? "?"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-foreground">Divyansh Shrivastava</p>
-                  <p className="truncate text-xs text-muted-foreground">divyansh.s@teamlens.dev</p>
+                  <p className="truncate text-sm font-medium text-foreground">{user?.name ?? "User"}</p>
+                  <p className="truncate text-xs text-muted-foreground">{user?.email ?? ""}</p>
                 </div>
               </div>
 
@@ -192,6 +194,7 @@ export function Sidebar() {
 
               <div className="p-1">
                 <button
+                  onClick={logout}
                   className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-500/10 dark:text-red-400"
                 >
                   <LogOut className="size-4" />
