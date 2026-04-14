@@ -24,5 +24,6 @@ export interface ChatMessage {
   timestamp: string
   isOwn: boolean
   isPinned?: boolean
+  isSystem?: boolean
   reactions?: { emoji: string; count: number }[]
 }

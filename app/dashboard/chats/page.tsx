@@ -12,7 +12,23 @@ import {
   mockChannels,
   mockMessages as initialMessages,
   typingNames,
+  teamList,
+  teamMembers,
 } from "@/lib/mock-data"
+import { addTask } from "@/lib/task-store"
+import type { TaskItem } from "@/lib/task-types"
+
+// ── /assign command regex ──────────────────────────────────
+// Matches: /assign @FirstName rest of the task title
+const ASSIGN_REGEX = /^\/assign\s+@(\S+)\s+(.+)$/i
+
+function now() {
+  return new Date().toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  })
+}
 
 // ── Page component ─────────────────────────────────────────
 
@@ -32,10 +48,102 @@ export default function ChatsPage() {
     ? channelMessages.filter((m) => m.isPinned)
     : channelMessages
 
+  // ── Helpers ────────────────────────────────────────────────
+
+  function appendMessages(channelId: string, ...msgs: ChatMessage[]) {
+    setMessages((prev) => ({
+      ...prev,
+      [channelId]: [...(prev[channelId] ?? []), ...msgs],
+    }))
+  }
+
+  function makeSystemMessage(channelId: string, content: string): ChatMessage {
+    return {
+      id: `sys-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      channelId,
+      senderId: "system",
+      senderName: "System",
+      senderInitials: "SY",
+      senderColor: "#6b7280",
+      content,
+      timestamp: now(),
+      isOwn: false,
+      isSystem: true,
+    }
+  }
+
+  // ── Handle Send ────────────────────────────────────────────
+
   function handleSend() {
     const text = newMessage.trim()
     if (!text) return
 
+    // Check for /assign command
+    const assignMatch = text.match(ASSIGN_REGEX)
+
+    if (assignMatch) {
+      const [, mentionName, taskTitle] = assignMatch
+
+      // Resolve person by first name (case-insensitive)
+      const person = teamList.find(
+        (p) => p.name.split(" ")[0].toLowerCase() === mentionName.toLowerCase()
+      )
+
+      if (!person) {
+        // Unknown person — show error system message
+        appendMessages(
+          selectedChannelId,
+          makeSystemMessage(
+            selectedChannelId,
+            `❌ Could not find team member "@${mentionName}". Try using their first name.`
+          )
+        )
+        setNewMessage("")
+        return
+      }
+
+      // Create the task
+      const assignee = teamMembers.find((m) => m.id === person.id)!
+      const newTask: TaskItem = {
+        id: `t-chat-${Date.now()}`,
+        title: taskTitle.trim(),
+        description: `Task assigned via chat by ${currentUser.name}`,
+        status: "pending",
+        priority: "medium",
+        category: "misc",
+        assignees: [assignee],
+        tags: ["CHAT-ASSIGNED"],
+        createdAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      }
+
+      // Push to shared store
+      addTask(newTask)
+
+      // Show the original command as a normal message
+      const userMsg: ChatMessage = {
+        id: `msg-${Date.now()}`,
+        channelId: selectedChannelId,
+        senderId: currentUser.id,
+        senderName: currentUser.name,
+        senderInitials: currentUser.initials,
+        senderColor: currentUser.color,
+        content: text,
+        timestamp: now(),
+        isOwn: true,
+      }
+
+      // Show system confirmation
+      const sysMsg = makeSystemMessage(
+        selectedChannelId,
+        `✅ Task assigned to ${person.name}: "${taskTitle.trim()}"`
+      )
+
+      appendMessages(selectedChannelId, userMsg, sysMsg)
+      setNewMessage("")
+      return
+    }
+
+    // Normal message
     const msg: ChatMessage = {
       id: `msg-${Date.now()}`,
       channelId: selectedChannelId,
@@ -44,18 +152,11 @@ export default function ChatsPage() {
       senderInitials: currentUser.initials,
       senderColor: currentUser.color,
       content: text,
-      timestamp: new Date().toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      }),
+      timestamp: now(),
       isOwn: true,
     }
 
-    setMessages((prev) => ({
-      ...prev,
-      [selectedChannelId]: [...(prev[selectedChannelId] ?? []), msg],
-    }))
+    appendMessages(selectedChannelId, msg)
     setNewMessage("")
 
     // Simulate typing response

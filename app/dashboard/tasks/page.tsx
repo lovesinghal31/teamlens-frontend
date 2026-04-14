@@ -17,11 +17,12 @@ import {
   ArrowDown,
   Clock,
   User,
+  ChevronDown,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { TaskColumn } from "@/components/tasks/task-column"
 import { TaskCard } from "@/components/tasks/task-card"
-import { taskItems } from "@/lib/task-mock-data"
+import { useTaskStore } from "@/lib/task-store"
 import { currentUser } from "@/lib/mock-data"
 import type { TaskStatus } from "@/lib/team-types"
 import type { TaskPriority, TaskCategory } from "@/lib/task-types"
@@ -63,18 +64,7 @@ const categoryFilters: { value: CategoryFilter; label: string }[] = [
 
 const statusOrder: TaskStatus[] = ["pending", "in-progress", "at-risk", "completed"]
 
-// ── Stats ──────────────────────────────────────────────────
 
-function useTaskStats() {
-  const total = taskItems.length
-  const completed = taskItems.filter((t) => t.status === "completed").length
-  const inProgress = taskItems.filter((t) => t.status === "in-progress").length
-  const pending = taskItems.filter((t) => t.status === "pending").length
-  const atRisk = taskItems.filter((t) => t.status === "at-risk").length
-  const completionPct = Math.round((completed / total) * 100)
-
-  return { total, completed, inProgress, pending, atRisk, completionPct }
-}
 
 // ── Page ───────────────────────────────────────────────────
 
@@ -95,6 +85,7 @@ export default function TaskPage() {
 function TaskPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const taskItems = useTaskStore()
 
   const assignedMe = searchParams.get("assignedMe") === "true"
 
@@ -104,6 +95,8 @@ function TaskPageContent() {
   const [priorityFilter, setPriorityFilter] = React.useState<PriorityFilter>("all")
   const [categoryFilter, setCategoryFilter] = React.useState<CategoryFilter>("all")
   const [expandedId, setExpandedId] = React.useState<string | null>(null)
+  const [filterOpen, setFilterOpen] = React.useState(false)
+  const filterRef = React.useRef<HTMLDivElement>(null)
 
   const toggleAssignedMe = () => {
     const params = new URLSearchParams(searchParams.toString())
@@ -115,7 +108,13 @@ function TaskPageContent() {
     router.push(`/dashboard/tasks?${params.toString()}`, { scroll: false })
   }
 
-  const stats = useTaskStats()
+  // ── Stats ──
+  const total = taskItems.length
+  const completed = taskItems.filter((t) => t.status === "completed").length
+  const inProgress = taskItems.filter((t) => t.status === "in-progress").length
+  const pending = taskItems.filter((t) => t.status === "pending").length
+  const atRisk = taskItems.filter((t) => t.status === "at-risk").length
+  const completionPct = total > 0 ? Math.round((completed / total) * 100) : 0
 
   // Filtered tasks
   const filteredTasks = taskItems.filter((t) => {
@@ -143,11 +142,13 @@ function TaskPageContent() {
     setExpandedId((prev) => (prev === id ? null : id))
   }
 
-  const activeFilterCount =
-    (assignedMe ? 1 : 0) +
+  // Filter count (excluding "assigned to me" since it's outside the dropdown)
+  const dropdownFilterCount =
     (statusFilter !== "all" ? 1 : 0) +
     (priorityFilter !== "all" ? 1 : 0) +
     (categoryFilter !== "all" ? 1 : 0)
+
+  const activeFilterCount = (assignedMe ? 1 : 0) + dropdownFilterCount
 
   const clearFilters = () => {
     setStatusFilter("all")
@@ -161,6 +162,25 @@ function TaskPageContent() {
     }
   }
 
+  // Close dropdown on outside click
+  React.useEffect(() => {
+    if (!filterOpen) return
+    function handleClick(e: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setFilterOpen(false)
+      }
+    }
+    function handleEsc(e: KeyboardEvent) {
+      if (e.key === "Escape") setFilterOpen(false)
+    }
+    document.addEventListener("mousedown", handleClick)
+    document.addEventListener("keydown", handleEsc)
+    return () => {
+      document.removeEventListener("mousedown", handleClick)
+      document.removeEventListener("keydown", handleEsc)
+    }
+  }, [filterOpen])
+
   return (
     <div className="flex flex-1 flex-col overflow-y-auto" id="task-page">
       {/* ── Header ── */}
@@ -168,7 +188,7 @@ function TaskPageContent() {
         <div>
           <h1 className="text-lg font-bold tracking-tight text-foreground">Tasks</h1>
           <p className="text-xs text-muted-foreground">
-            {stats.total} total · {stats.completed} completed · Sprint 4
+            {total} total · {completed} completed · Sprint 4
           </p>
         </div>
 
@@ -211,35 +231,35 @@ function TaskPageContent() {
           <StatMini
             icon={ListTodo}
             label="Total"
-            value={stats.total}
+            value={total}
             color="text-foreground"
             bg="bg-muted"
           />
           <StatMini
             icon={Clock}
             label="Pending"
-            value={stats.pending}
+            value={pending}
             color="text-amber-600 dark:text-amber-400"
             bg="bg-amber-500/10"
           />
           <StatMini
             icon={Loader}
             label="In Progress"
-            value={stats.inProgress}
+            value={inProgress}
             color="text-blue-600 dark:text-blue-400"
             bg="bg-blue-500/10"
           />
           <StatMini
             icon={AlertTriangle}
             label="At Risk"
-            value={stats.atRisk}
+            value={atRisk}
             color="text-red-600 dark:text-red-400"
             bg="bg-red-500/10"
           />
           <StatMini
             icon={CheckCheck}
             label="Completed"
-            value={stats.completed}
+            value={completed}
             color="text-emerald-600 dark:text-emerald-400"
             bg="bg-emerald-500/10"
           />
@@ -247,9 +267,9 @@ function TaskPageContent() {
 
         {/* Progress overview */}
         <div className="mt-3 flex items-center gap-3">
-          <Progress value={stats.completionPct} className="h-1.5 flex-1" />
+          <Progress value={completionPct} className="h-1.5 flex-1" />
           <span className="text-[11px] font-semibold tabular-nums text-muted-foreground">
-            {stats.completionPct}% complete
+            {completionPct}% complete
           </span>
         </div>
       </div>
@@ -284,7 +304,7 @@ function TaskPageContent() {
             <button
               onClick={toggleAssignedMe}
               className={cn(
-                "flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold transition-all duration-200",
+                "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold transition-all duration-200",
                 assignedMe
                   ? "bg-violet-600 text-white shadow-sm shadow-violet-500/25"
                   : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -298,79 +318,145 @@ function TaskPageContent() {
             {/* Divider */}
             <div className="hidden h-5 w-px bg-border sm:block" />
 
-            {/* Status filter */}
-            <div className="flex items-center gap-1">
-              {statusFilters.map((f) => (
-                <button
-                  key={f.value}
-                  onClick={() => setStatusFilter(f.value)}
+            {/* Filter dropdown trigger */}
+            <div className="relative" ref={filterRef}>
+              <button
+                onClick={() => setFilterOpen((prev) => !prev)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold transition-all duration-200",
+                  filterOpen || dropdownFilterCount > 0
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                )}
+                id="filter-dropdown-trigger"
+              >
+                <Filter className="size-3" />
+                Filters
+                {dropdownFilterCount > 0 && (
+                  <span className="flex size-4 items-center justify-center rounded-full bg-white/20 text-[9px] font-bold leading-none">
+                    {dropdownFilterCount}
+                  </span>
+                )}
+                <ChevronDown
                   className={cn(
-                    "rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-200",
-                    statusFilter === f.value
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    "size-3 transition-transform duration-200",
+                    filterOpen && "rotate-180"
                   )}
-                  id={`filter-status-${f.value}`}
-                >
-                  {f.label}
-                </button>
-              ))}
+                />
+              </button>
+
+              {/* Dropdown panel */}
+              {filterOpen && (
+                <div className="absolute right-0 top-full z-50 mt-2 w-72 origin-top-right animate-in fade-in slide-in-from-top-2 rounded-xl border border-border bg-background/95 p-4 shadow-xl backdrop-blur-lg duration-200">
+                  {/* Status */}
+                  <div className="mb-3">
+                    <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Status
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {statusFilters.map((f) => (
+                        <button
+                          key={f.value}
+                          onClick={() => setStatusFilter(f.value)}
+                          className={cn(
+                            "rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-150",
+                            statusFilter === f.value
+                              ? "bg-primary text-primary-foreground shadow-sm"
+                              : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                          )}
+                          id={`filter-status-${f.value}`}
+                        >
+                          {f.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="mb-3 h-px bg-border" />
+
+                  {/* Priority */}
+                  <div className="mb-3">
+                    <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Priority
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {priorityFilters.map((f) => (
+                        <button
+                          key={f.value}
+                          onClick={() => setPriorityFilter(f.value)}
+                          className={cn(
+                            "flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-150",
+                            priorityFilter === f.value
+                              ? "bg-primary text-primary-foreground shadow-sm"
+                              : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                          )}
+                          id={`filter-priority-${f.value}`}
+                        >
+                          <f.icon className="size-3" />
+                          {f.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="mb-3 h-px bg-border" />
+
+                  {/* Category */}
+                  <div>
+                    <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Category
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {categoryFilters.map((f) => (
+                        <button
+                          key={f.value}
+                          onClick={() => setCategoryFilter(f.value)}
+                          className={cn(
+                            "rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-150",
+                            categoryFilter === f.value
+                              ? "bg-primary text-primary-foreground shadow-sm"
+                              : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                          )}
+                          id={`filter-category-${f.value}`}
+                        >
+                          {f.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Reset inside dropdown */}
+                  {dropdownFilterCount > 0 && (
+                    <>
+                      <div className="mt-3 h-px bg-border" />
+                      <button
+                        onClick={() => {
+                          setStatusFilter("all")
+                          setPriorityFilter("all")
+                          setCategoryFilter("all")
+                        }}
+                        className="mt-3 flex w-full items-center justify-center gap-1 rounded-lg bg-destructive/10 px-3 py-1.5 text-[11px] font-medium text-destructive transition-colors hover:bg-destructive/20"
+                      >
+                        <X className="size-3" />
+                        Reset Filters
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* Divider */}
-            <div className="hidden h-5 w-px bg-border sm:block" />
-
-            {/* Priority filter */}
-            <div className="flex items-center gap-1">
-              {priorityFilters.map((f) => (
-                <button
-                  key={f.value}
-                  onClick={() => setPriorityFilter(f.value)}
-                  className={cn(
-                    "flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-200",
-                    priorityFilter === f.value
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                  )}
-                  id={`filter-priority-${f.value}`}
-                >
-                  <f.icon className="size-3" />
-                  {f.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Divider */}
-            <div className="hidden h-5 w-px bg-border sm:block" />
-
-            {/* Category filter */}
-            <div className="flex items-center gap-1">
-              {categoryFilters.map((f) => (
-                <button
-                  key={f.value}
-                  onClick={() => setCategoryFilter(f.value)}
-                  className={cn(
-                    "rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-200",
-                    categoryFilter === f.value
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                  )}
-                  id={`filter-category-${f.value}`}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Clear filters */}
+            {/* Clear all filters (visible when any filter is active) */}
             {activeFilterCount > 0 && (
               <button
                 onClick={clearFilters}
-                className="flex items-center gap-1 rounded-full bg-destructive/10 px-2.5 py-1 text-[11px] font-medium text-destructive transition-all hover:bg-destructive/20"
+                className="flex items-center gap-1 rounded-full bg-destructive/10 px-2.5 py-1.5 text-[11px] font-medium text-destructive transition-all hover:bg-destructive/20"
                 id="clear-filters"
               >
                 <X className="size-3" />
-                Clear ({activeFilterCount})
+                Clear all ({activeFilterCount})
               </button>
             )}
           </div>
