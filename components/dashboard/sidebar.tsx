@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  ListTodo,
 } from "lucide-react"
 import {
   Tooltip,
@@ -24,6 +25,7 @@ import { Separator } from "@/components/ui/separator"
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+  { icon: ListTodo, label: "Tasks", href: "/dashboard/tasks" },
   { icon: CalendarDays, label: "Meetings", href: "/dashboard/meetings" },
   { icon: Users, label: "Team", href: "/dashboard/team" },
   { icon: MessageSquare, label: "Chats", href: "/dashboard/chats" },
