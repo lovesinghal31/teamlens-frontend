@@ -98,17 +98,17 @@ export default function LandingPage() {
           AI-Powered Collaboration for Group Projects
         </div>
 
-        <h1 className="mx-auto max-w-3xl text-4xl font-extrabold leading-[1.1] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-          Your team&apos;s work,{" "}
+        <h1 className="mx-auto max-w-4xl text-4xl font-extrabold leading-[1.1] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+          Make teamwork{" "}
           <span className="bg-gradient-to-r from-primary via-indigo-500 to-violet-500 bg-clip-text text-transparent">
-            crystal clear
+            actually work
           </span>
         </h1>
 
-        <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-          TeamLens is the AI dashboard that keeps every team member aligned.
-          Track tasks, auto-schedule meetings, chat in context, and get
-          insights — all in one place.
+        <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+          Unequal contributions, version control chaos, rushed merges, and
+          unproductive meetings define most group projects. TeamLens is an AI
+          collaborator that solves all of it through smart communication analysis, task tracking, and meeting intelligence.
         </p>
 
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
