@@ -49,6 +49,18 @@ interface MessageBubbleProps {
 }
 
 export function MessageBubble({ message, showSender }: MessageBubbleProps) {
+  // ── System messages ──
+  if (message.isSystem) {
+    return (
+      <div className="flex w-full animate-in fade-in-0 duration-300 justify-center py-1">
+        <div className="flex items-center gap-2 rounded-full border border-border/50 bg-muted/50 px-4 py-1.5 backdrop-blur-sm">
+          <p className="text-xs font-medium text-muted-foreground">{message.content}</p>
+          <span className="text-[9px] text-muted-foreground/60">{message.timestamp}</span>
+        </div>
+      </div>
+    )
+  }
+
   const { isOwn } = message
   const bubbleStyle = getBubbleStyle(message.senderColor, isOwn)
 
