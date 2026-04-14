@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import {
   Search,
   X,
@@ -15,11 +16,13 @@ import {
   ArrowRight,
   ArrowDown,
   Clock,
+  User,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { TaskColumn } from "@/components/tasks/task-column"
 import { TaskCard } from "@/components/tasks/task-card"
 import { taskItems } from "@/lib/task-mock-data"
+import { currentUser } from "@/lib/mock-data"
 import type { TaskStatus } from "@/lib/team-types"
 import type { TaskPriority, TaskCategory } from "@/lib/task-types"
 import { Progress } from "@/components/ui/progress"
@@ -76,6 +79,11 @@ function useTaskStats() {
 // ── Page ───────────────────────────────────────────────────
 
 export default function TaskPage() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  const assignedMe = searchParams.get("assignedMe") === "true"
+
   const [view, setView] = React.useState<ViewMode>("board")
   const [search, setSearch] = React.useState("")
   const [statusFilter, setStatusFilter] = React.useState<StatusFilter>("all")
@@ -83,10 +91,21 @@ export default function TaskPage() {
   const [categoryFilter, setCategoryFilter] = React.useState<CategoryFilter>("all")
   const [expandedId, setExpandedId] = React.useState<string | null>(null)
 
+  const toggleAssignedMe = () => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (assignedMe) {
+      params.delete("assignedMe")
+    } else {
+      params.set("assignedMe", "true")
+    }
+    router.push(`/dashboard/tasks?${params.toString()}`, { scroll: false })
+  }
+
   const stats = useTaskStats()
 
   // Filtered tasks
   const filteredTasks = taskItems.filter((t) => {
+    if (assignedMe && !t.assignees.some((a) => a.id === currentUser.id)) return false
     if (search && !t.title.toLowerCase().includes(search.toLowerCase())) return false
     if (statusFilter !== "all" && t.status !== statusFilter) return false
     if (priorityFilter !== "all" && t.priority !== priorityFilter) return false
@@ -111,6 +130,7 @@ export default function TaskPage() {
   }
 
   const activeFilterCount =
+    (assignedMe ? 1 : 0) +
     (statusFilter !== "all" ? 1 : 0) +
     (priorityFilter !== "all" ? 1 : 0) +
     (categoryFilter !== "all" ? 1 : 0)
@@ -120,6 +140,11 @@ export default function TaskPage() {
     setPriorityFilter("all")
     setCategoryFilter("all")
     setSearch("")
+    if (assignedMe) {
+      const params = new URLSearchParams(searchParams.toString())
+      params.delete("assignedMe")
+      router.push(`/dashboard/tasks?${params.toString()}`, { scroll: false })
+    }
   }
 
   return (
@@ -241,6 +266,24 @@ export default function TaskPage() {
 
           {/* Filter controls */}
           <div className="flex flex-wrap items-center gap-2">
+            {/* Assigned to Me toggle */}
+            <button
+              onClick={toggleAssignedMe}
+              className={cn(
+                "flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold transition-all duration-200",
+                assignedMe
+                  ? "bg-violet-600 text-white shadow-sm shadow-violet-500/25"
+                  : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              )}
+              id="filter-assigned-me"
+            >
+              <User className="size-3" />
+              Assigned to Me
+            </button>
+
+            {/* Divider */}
+            <div className="hidden h-5 w-px bg-border sm:block" />
+
             {/* Status filter */}
             <div className="flex items-center gap-1">
               {statusFilters.map((f) => (
