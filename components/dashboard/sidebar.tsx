@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
+import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
@@ -12,6 +13,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  User,
+  Settings,
+  Moon,
+  Sun,
+  LogOut,
+  ChevronsUpDown,
 } from "lucide-react"
 import {
   Tooltip,
@@ -19,6 +26,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 
@@ -32,6 +40,8 @@ const navItems = [
 export function Sidebar() {
   const [collapsed, setCollapsed] = React.useState(false)
   const pathname = usePathname()
+  const router = useRouter()
+  const { resolvedTheme, setTheme } = useTheme()
 
   return (
     <TooltipProvider delay={0}>
@@ -95,26 +105,99 @@ export function Sidebar() {
           })}
         </nav>
 
-        {/* User section */}
+        {/* User section with popover */}
         <div className="border-t border-border p-3">
-          <div
-            className={cn(
-              "flex items-center gap-3 rounded-lg px-2 py-2",
-              collapsed && "justify-center"
-            )}
-          >
-            <Avatar className="size-8">
-              <AvatarFallback className="bg-primary/15 text-xs font-medium text-primary">
-                DS
-              </AvatarFallback>
-            </Avatar>
-            {!collapsed && (
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-foreground">Divyansh Shrivastava</p>
-                <p className="truncate text-xs text-muted-foreground">Admin</p>
+          <Popover>
+            <PopoverTrigger
+              className={cn(
+                "flex w-full cursor-pointer items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-accent",
+                collapsed && "justify-center"
+              )}
+            >
+              <Avatar className="size-8">
+                <AvatarFallback className="bg-primary/15 text-xs font-medium text-primary">
+                  DS
+                </AvatarFallback>
+              </Avatar>
+              {!collapsed && (
+                <>
+                  <div className="min-w-0 flex-1 text-left">
+                    <p className="truncate text-sm font-medium text-foreground">Divyansh Shrivastava</p>
+                    <p className="truncate text-xs text-muted-foreground">Admin</p>
+                  </div>
+                  <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
+                </>
+              )}
+            </PopoverTrigger>
+
+            <PopoverContent
+              side="top"
+              sideOffset={8}
+              align="start"
+              className="w-56"
+            >
+              {/* User header inside popover */}
+              <div className="flex items-center gap-3 rounded-lg px-3 py-2.5">
+                <Avatar className="size-9">
+                  <AvatarFallback className="bg-primary/15 text-xs font-medium text-primary">
+                    DS
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-foreground">Divyansh Shrivastava</p>
+                  <p className="truncate text-xs text-muted-foreground">divyansh.s@teamlens.dev</p>
+                </div>
               </div>
-            )}
-          </div>
+
+              <div className="my-1 h-px bg-border" />
+
+              {/* Menu items */}
+              <div className="space-y-0.5 p-1">
+                <button
+                  onClick={() => router.push("/dashboard/profile")}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground transition-colors hover:bg-accent"
+                >
+                  <User className="size-4 text-muted-foreground" />
+                  Profile
+                </button>
+
+                <button
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground transition-colors hover:bg-accent"
+                >
+                  <Settings className="size-4 text-muted-foreground" />
+                  Settings
+                </button>
+
+                <button
+                  onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                  className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm text-foreground transition-colors hover:bg-accent"
+                >
+                  <span className="flex items-center gap-3">
+                    {resolvedTheme === "dark" ? (
+                      <Sun className="size-4 text-muted-foreground" />
+                    ) : (
+                      <Moon className="size-4 text-muted-foreground" />
+                    )}
+                    Theme
+                  </span>
+                  <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                    {resolvedTheme === "dark" ? "Light" : "Dark"}
+                  </span>
+                </button>
+              </div>
+
+              <div className="my-1 h-px bg-border" />
+
+              <div className="p-1">
+                <button
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-500/10 dark:text-red-400"
+                >
+                  <LogOut className="size-4" />
+                  Log out
+                </button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* Collapse toggle */}
