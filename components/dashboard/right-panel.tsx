@@ -6,9 +6,10 @@ import { X, Calendar, Clock, CheckCircle2, Circle, Timer, CalendarClock } from "
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { upcomingMeetingsPanel as upcomingMeetings, yourTasks } from "@/lib/mock-data"
+import { upcomingMeetingsPanel as upcomingMeetings, currentUser } from "@/lib/mock-data"
+import { useTaskStore } from "@/lib/task-store"
 
-function getDeadlineStyle(deadline: string, status: string) {
+function getDeadlineStyle(deadline: string | undefined, status: string) {
   if (status === "completed") return "bg-muted/50 text-muted-foreground/60"
   if (deadline === "Apr 9") return "bg-red-500/10 text-red-600 dark:text-red-400"
   if (deadline === "Apr 10") return "bg-amber-500/10 text-amber-600 dark:text-amber-400"
@@ -22,6 +23,23 @@ interface RightPanelProps {
 
 export function RightPanel({ open, onClose }: RightPanelProps) {
   const [activeTab, setActiveTab] = React.useState<"meetings" | "tasks">("meetings")
+  const allTasks = useTaskStore()
+
+  // Derive "your tasks" from the store — only tasks assigned to current user
+  const myTasks = React.useMemo(
+    () =>
+      allTasks
+        .filter((t) => t.assignees.some((a) => a.id === currentUser.id))
+        .map((t) => ({
+          id: t.id,
+          title: t.title,
+          progress: t.progress ?? (t.status === "completed" ? 100 : 0),
+          status: t.status,
+          deadline: t.dueDate,
+        })),
+    [allTasks]
+  )
+
   // Close on Escape
   React.useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -86,6 +104,9 @@ export function RightPanel({ open, onClose }: RightPanelProps) {
             >
               <Timer className="size-3.5" />
               Your Tasks
+              <span className="ml-0.5 flex size-4 items-center justify-center rounded-full bg-primary/10 text-[9px] font-bold text-primary">
+                {myTasks.length}
+              </span>
             </button>
           </div>
         </div>
@@ -127,47 +148,57 @@ export function RightPanel({ open, onClose }: RightPanelProps) {
           {/* Your Tasks */}
           {activeTab === "tasks" && (
             <div className="space-y-2.5">
-              {yourTasks.map((task) => (
-                <div
-                  key={task.title}
-                  className="rounded-xl border border-border p-3.5 transition-colors hover:bg-accent/50"
-                >
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      {task.status === "completed" ? (
-                        <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />
-                      ) : (
-                        <Circle className="size-4 shrink-0 text-muted-foreground" />
-                      )}
-                      <span
-                        className={cn(
-                          "truncate text-sm font-medium",
-                          task.status === "completed"
-                            ? "text-muted-foreground line-through"
-                            : "text-foreground"
+              {myTasks.length === 0 ? (
+                <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
+                  <CheckCircle2 className="size-10 text-emerald-500/30" />
+                  <p className="text-sm font-medium text-muted-foreground">All caught up!</p>
+                  <p className="text-xs text-muted-foreground/60">No tasks assigned to you</p>
+                </div>
+              ) : (
+                myTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className="rounded-xl border border-border p-3.5 transition-colors hover:bg-accent/50"
+                  >
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {task.status === "completed" ? (
+                          <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />
+                        ) : (
+                          <Circle className="size-4 shrink-0 text-muted-foreground" />
                         )}
-                      >
-                        {task.title}
+                        <span
+                          className={cn(
+                            "truncate text-sm font-medium",
+                            task.status === "completed"
+                              ? "text-muted-foreground line-through"
+                              : "text-foreground"
+                          )}
+                        >
+                          {task.title}
+                        </span>
+                      </div>
+                      {task.deadline && (
+                        <span
+                          className={cn(
+                            "flex shrink-0 items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium",
+                            getDeadlineStyle(task.deadline, task.status)
+                          )}
+                        >
+                          <CalendarClock className="size-2.5" />
+                          {task.deadline}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Progress value={task.progress} className="h-1.5 flex-1" />
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {task.progress}%
                       </span>
                     </div>
-                    <span
-                      className={cn(
-                        "flex shrink-0 items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium",
-                        getDeadlineStyle(task.deadline, task.status)
-                      )}
-                    >
-                      <CalendarClock className="size-2.5" />
-                      {task.deadline}
-                    </span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Progress value={task.progress} className="h-1.5 flex-1" />
-                    <span className="text-xs font-medium text-muted-foreground">
-                      {task.progress}%
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           )}
         </div>

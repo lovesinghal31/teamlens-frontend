@@ -22,7 +22,7 @@ import {
 import { cn } from "@/lib/utils"
 import { TaskColumn } from "@/components/tasks/task-column"
 import { TaskCard } from "@/components/tasks/task-card"
-import { taskItems } from "@/lib/task-mock-data"
+import { useTaskStore } from "@/lib/task-store"
 import { currentUser } from "@/lib/mock-data"
 import type { TaskStatus } from "@/lib/team-types"
 import type { TaskPriority, TaskCategory } from "@/lib/task-types"
@@ -64,18 +64,7 @@ const categoryFilters: { value: CategoryFilter; label: string }[] = [
 
 const statusOrder: TaskStatus[] = ["pending", "in-progress", "at-risk", "completed"]
 
-// ── Stats ──────────────────────────────────────────────────
 
-function useTaskStats() {
-  const total = taskItems.length
-  const completed = taskItems.filter((t) => t.status === "completed").length
-  const inProgress = taskItems.filter((t) => t.status === "in-progress").length
-  const pending = taskItems.filter((t) => t.status === "pending").length
-  const atRisk = taskItems.filter((t) => t.status === "at-risk").length
-  const completionPct = Math.round((completed / total) * 100)
-
-  return { total, completed, inProgress, pending, atRisk, completionPct }
-}
 
 // ── Page ───────────────────────────────────────────────────
 
@@ -96,6 +85,7 @@ export default function TaskPage() {
 function TaskPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const taskItems = useTaskStore()
 
   const assignedMe = searchParams.get("assignedMe") === "true"
 
@@ -118,7 +108,13 @@ function TaskPageContent() {
     router.push(`/dashboard/tasks?${params.toString()}`, { scroll: false })
   }
 
-  const stats = useTaskStats()
+  // ── Stats ──
+  const total = taskItems.length
+  const completed = taskItems.filter((t) => t.status === "completed").length
+  const inProgress = taskItems.filter((t) => t.status === "in-progress").length
+  const pending = taskItems.filter((t) => t.status === "pending").length
+  const atRisk = taskItems.filter((t) => t.status === "at-risk").length
+  const completionPct = total > 0 ? Math.round((completed / total) * 100) : 0
 
   // Filtered tasks
   const filteredTasks = taskItems.filter((t) => {
@@ -192,7 +188,7 @@ function TaskPageContent() {
         <div>
           <h1 className="text-lg font-bold tracking-tight text-foreground">Tasks</h1>
           <p className="text-xs text-muted-foreground">
-            {stats.total} total · {stats.completed} completed · Sprint 4
+            {total} total · {completed} completed · Sprint 4
           </p>
         </div>
 
@@ -235,35 +231,35 @@ function TaskPageContent() {
           <StatMini
             icon={ListTodo}
             label="Total"
-            value={stats.total}
+            value={total}
             color="text-foreground"
             bg="bg-muted"
           />
           <StatMini
             icon={Clock}
             label="Pending"
-            value={stats.pending}
+            value={pending}
             color="text-amber-600 dark:text-amber-400"
             bg="bg-amber-500/10"
           />
           <StatMini
             icon={Loader}
             label="In Progress"
-            value={stats.inProgress}
+            value={inProgress}
             color="text-blue-600 dark:text-blue-400"
             bg="bg-blue-500/10"
           />
           <StatMini
             icon={AlertTriangle}
             label="At Risk"
-            value={stats.atRisk}
+            value={atRisk}
             color="text-red-600 dark:text-red-400"
             bg="bg-red-500/10"
           />
           <StatMini
             icon={CheckCheck}
             label="Completed"
-            value={stats.completed}
+            value={completed}
             color="text-emerald-600 dark:text-emerald-400"
             bg="bg-emerald-500/10"
           />
@@ -271,9 +267,9 @@ function TaskPageContent() {
 
         {/* Progress overview */}
         <div className="mt-3 flex items-center gap-3">
-          <Progress value={stats.completionPct} className="h-1.5 flex-1" />
+          <Progress value={completionPct} className="h-1.5 flex-1" />
           <span className="text-[11px] font-semibold tabular-nums text-muted-foreground">
-            {stats.completionPct}% complete
+            {completionPct}% complete
           </span>
         </div>
       </div>
